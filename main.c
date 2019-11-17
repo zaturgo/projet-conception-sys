@@ -41,28 +41,33 @@ int main() {
     //msgctl(msgid, IPC_RMID, NULL);
     return 0;
 }
-void Superviseur(){
+void Superviseur() {
 //    Quantum = Xsecondes
-    //while true
-    //for sur toutes les files de msg(en priorité la 0)
-    //while quantum
-    //for sur la file de msg
-    //start
-    // mettre en pause proc courant, et à la fin de la file
-    int start = 10;
-    while(start > -1)
-    {
-        if (start != 0)
-        {
-            printf("Quantum n°%d\n",10-start);
+//var globale proc
+    int start = 5;
+    while (start > -1) {//tant qu'il y a des processus
+        if (start != 0) {
+            printf("Quantum n°%d\n", 5 - start);
+            //for sur les files de message ->i
+              //si elle contient un processus
+              //this.proc = getProcFileMsg();prend le premier processus de la file
+              //timer = true;
+              //timer 2 sec {timer = false; this.proc.pause();}
+              //while(timer)
+                    //resume this.proc
+                    //wait(this.proc);
+                    //this.proc = getProcFileMsg();prend le premier processus de la file
+            // }
+
+                //quand proc fini, get procFileMsg et recommencer
+                // si execution > 2secondes, mettre en pause proc actuel, et renvoyer dans la file msg
             start--;
             sleep(2);
-        }
-        else
-        {
+        } else {
             break;
         }
     }
+}
 
 // Générateur de processus aléatoire
 void ProcessusGenerateur() {
@@ -78,13 +83,8 @@ void ProcessusGenerateur() {
             printf("[Processus lancé] PID : %d,  priorite : %ld, temps d'execution : %d\n", process.pid, process.priorite, process.tpsExec);
             sleep(10);
             exit(0);//kill après 10 secondes
-            //switch priorité, += processus sur liste message du n° priorité
-            //superviseur va s'occupper en priorité les prio basses. A chaque quantum de temps, il verifie si de nouveau process sont générés. Exemple:
-            //superviseur execute proc de prio 3, on ajoute un proc de prio 1, il met en pause le 3 pour faire le 1
         }
     }
-
-    //ProcessusGenerateur();
 }
 
 /*void CreationFileMessages() {
