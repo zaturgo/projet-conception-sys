@@ -5,17 +5,9 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-#define CLE_PRIORITE_0      0
-#define CLE_PRIORITE_1      1
-#define CLE_PRIORITE_2      2
-#define CLE_PRIORITE_3      3
-#define CLE_PRIORITE_4      4
-#define CLE_PRIORITE_5      5
-#define CLE_PRIORITE_6      6
-#define CLE_PRIORITE_7      7
-#define CLE_PRIORITE_8      8
-#define CLE_PRIORITE_9      9
-#define CLE_PRIORITE_10     10
+#define NB_FILEMSG 11
+
+int CLE_PRIORITE[11];
 
 typedef struct {
     long priorite;
@@ -25,20 +17,29 @@ typedef struct {
 } processus;
 
 void ProcessusGenerateur();
-//void CreationFileMessages();
 void Superviseur();
 
 int main() {
-    /*int msgid;
-    CreationFileMessages();
-    if ((msgid = msgget(CLE_PRIORITE_0, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
+    int msgid[NB_FILEMSG];
+
+    // Création des files de message
+    for(int i=0; i<NB_FILEMSG; i++) {
+        CLE_PRIORITE[i] = i;
+        if ((msgid[i] = msgget(CLE_PRIORITE[i], 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
         perror("Erreur de creation de la file 0\n");
         exit(1);
-    }*/
+        }
+    }
+    
+
 //    Superviseur();
     ProcessusGenerateur();
 
-    //msgctl(msgid, IPC_RMID, NULL);
+    // Suppression des files de messages
+    for(int i=0; i<NB_FILEMSG; i++) {
+        msgctl(msgid[i], IPC_RMID, NULL);
+    }
+
     return 0;
 }
 void Superviseur() {
@@ -73,7 +74,7 @@ void Superviseur() {
 void ProcessusGenerateur() {
     for (int i = 0; i < 5; ++i) {
         srand(time(NULL));
-        sleep(1);
+        sleep(0.5);
         if(fork() == 0) {
             processus process;
             process.pid = getpid();
@@ -86,62 +87,4 @@ void ProcessusGenerateur() {
         }
     }
 }
-
-/*void CreationFileMessages() {
-
-    if ((msgid = msgget(CLE_PRIORITE_0, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 0\n");
-        exit(1);
-    }
-
-    if ((msgid = msgget(CLE_PRIORITE_1, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 1\n");
-        exit(1);
-    }
-
-    if ((msgid = msgget(CLE_PRIORITE_2, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 2\n");
-        exit(1);
-    }
-    
-    if ((msgid = msgget(CLE_PRIORITE_3, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 3\n");
-        exit(1);
-    }
-
-    if ((msgid = msgget(CLE_PRIORITE_4, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 4\n");
-        exit(1);
-    }
-    
-    if ((msgid = msgget(CLE_PRIORITE_5, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 5\n");
-        exit(1);
-    }
-
-    if ((msgid = msgget(CLE_PRIORITE_6, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 6\n");
-        exit(1);
-    }
-    
-    if ((msgid = msgget(CLE_PRIORITE_7, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 7\n");
-        exit(1);
-    }
-
-    if ((msgid = msgget(CLE_PRIORITE_8, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 8\n");
-        exit(1);
-    }
-    
-    if ((msgid = msgget(CLE_PRIORITE_9, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file9\n");
-        exit(1);
-    }
-
-    if ((msgid = msgget(CLE_PRIORITE_10, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-        perror("Erreur de creation de la file 10\n");
-        exit(1);
-    }
-}*/
 
