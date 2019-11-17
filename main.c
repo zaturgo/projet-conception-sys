@@ -55,7 +55,8 @@ void ProcessusGenerateur() {
             process.tpsExec = rand()%21;
             process.dateSoumission = rand()%6;
             printf("[Processus lancé] PID : %d,  priorite : %ld, temps d'execution : %d\n", process.pid, process.priorite, process.tpsExec);
-            while(1);
+            sleep(10);
+            exit(0);//kill après 10 secondes
             //switch priorité, += processus sur liste message du n° priorité
             //superviseur va s'occupper en priorité les prio basses. A chaque quantum de temps, il verifie si de nouveau process sont générés. Exemple:
             //superviseur execute proc de prio 3, on ajoute un proc de prio 1, il met en pause le 3 pour faire le 1
