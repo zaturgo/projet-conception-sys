@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 typedef struct {
     long priorite;
@@ -8,15 +9,16 @@ typedef struct {
     int tpsExec;
 } processus;
 
+void ProcessusGenerateur();
+
 int main() {
     ProcessusGenerateur();
     return 0;
 }
 
 void ProcessusGenerateur() {
-
     if(fork() == 0) {
-        
+
         processus process;
         process.pid = getpid();
         process.priorite = rand()%11;
@@ -29,3 +31,5 @@ void ProcessusGenerateur() {
         }
     }
 }
+
+
