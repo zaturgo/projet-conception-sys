@@ -5,9 +5,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-#define NB_FILEMSG 11
-
-int CLE_PRIORITE[11];
+#define CLE 1
 
 typedef struct {
     long priorite;
@@ -20,25 +18,20 @@ void ProcessusGenerateur();
 void Superviseur();
 
 int main() {
-    int msgid[NB_FILEMSG];
+    int msgid;
 
-    // Création des files de message
-    for(int i=0; i<NB_FILEMSG; i++) {
-        CLE_PRIORITE[i] = i;
-        if ((msgid[i] = msgget(CLE_PRIORITE[i], 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
+    // Création de la file de messages
+    if ((msgid = msgget(CLE, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
         perror("Erreur de creation de la file 0\n");
         exit(1);
-        }
     }
     
 
 //    Superviseur();
     ProcessusGenerateur();
 
-    // Suppression des files de messages
-    for(int i=0; i<NB_FILEMSG; i++) {
-        msgctl(msgid[i], IPC_RMID, NULL);
-    }
+    // Suppression de la file de messages
+    msgctl(msgid, IPC_RMID, NULL);
 
     return 0;
 }
