@@ -6,3 +6,5 @@ cmake-build-debug/
 a.out
 
 exec
+
+CMakeLists.txt
