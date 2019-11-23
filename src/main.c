@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <time.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define CLE 123
+#define PRIO_MIN  1
+#define PRIO_MAX  10
 
 typedef struct {
     long priorite;
@@ -17,69 +19,140 @@ typedef struct {
 
 
 void ProcessusGenerateur(int, int);
-void Superviseur(int);
-
+void Superviseur(int, int*, int, int);
 
 
 int main() {
     int msgid;
     int nbProcess;
+    int dureeQuantum;
+    int* tabCPU;
+    int tempTabCPU[200];
+    int tailleTabCPU = 0;
+    char chaine[5];
 
-    // Création de la file de messages
+
+    //======= Données entrées par l'utilisateur ======
+    printf("Entrez le nombre de processus : ");
+    scanf("%d", &nbProcess);
+
+    printf("Entrez la durée d'un quantum : ");
+    scanf("%d", &dureeQuantum);
+    //================================================
+
+
+    //============== Ouverture du fichier csv ===================
+    FILE* fichier = fopen("../TableCPU.csv", "r");
+    if (fichier==NULL) {
+        printf("Ouverture fichier impossible !");
+        exit(1);
+    }//==========================================================
+
+
+    //============= Lecture du fichier csv ======================
+    // on lit une ligne après l'autre jusqu'Ã  la fin du fichier
+    while (fgets(chaine, 5, fichier) != NULL) {
+        tempTabCPU[tailleTabCPU] = atoi(chaine);
+        tailleTabCPU++;
+    }
+    fclose(fichier);
+    //===========================================================
+
+
+    //====== Remplissage table d'allocation CPU ======
+    tabCPU = malloc(tailleTabCPU * sizeof(int));
+
+    for(int i=0; i<tailleTabCPU; i++) {
+        tabCPU[i] = tempTabCPU[i];
+    }//===============================================
+
+
+    //================ Création de la file de messages======================
     if ((msgid = msgget(CLE, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
         perror("Erreur de creation de la file\n");
         exit(1);
-    }
-
-    printf("Entrez le nombre de processus : ");
-    scanf("%d", &nbProcess);
+    }//=====================================================================
     
 
+    //======= Génerateur de processus et superviseur =======
     ProcessusGenerateur(msgid, nbProcess);
-    sleep(1);
-    Superviseur(msgid);
+    Superviseur(msgid, tabCPU, tailleTabCPU, dureeQuantum);
+    //======================================================
 
-    sleep(1);
-    // Suppression de la file de messages
+
+
+    //=== Suppr file de msg et libération mémoire ===
     msgctl(msgid, IPC_RMID, NULL);
+    free(tabCPU);
+    //===============================================
 
     return 0;
 }
 
 
 
-void Superviseur(int msgid) {
-//    Quantum = Xsecondes
-//var globale proc
-    //int start = 5;
+void Superviseur(int msgid, int* tabCPU, int tailleTabCPU, int dureeQuantum) {
     int quantum = 0;
     bool fileVide = false;
-    processus process;
 
-    printf("\n- LANCEMENT DU SUPERVISEUR\n");
+    printf("\n\n=====================================   LANCEMENT DU SUPERVISEUR   =========================================\n");
+    printf("Durée quantum : %d\n", dureeQuantum);
+
     // Tant que la file n'est pas vide
     while(!fileVide) {
+        processus process;
+
+        int noPriorite = tabCPU[quantum % tailleTabCPU]; // priorité cherchée
+        int i = noPriorite;
+        bool pasDeProcess = false; // true = pas de processus de la priorité recherchée jusqu'à la priorité MAX
         fileVide = true;
-        // Parcourt les priorité
-        for(int i=1; i<12; i++) {
-            // Récupère le 1er processus de priorité i s'il existe
+
+        // i = priorité | si pas de processus de prio i, alors chercher prio i+1 jusqu'a MAX
+        // Si i = MAX et toujours pas de processus on recommence à la prio 0 jusqu'au noPriorite recherchée
+        while(i<=PRIO_MAX) {
+            //printf("i= %d\n", i);
+            // Verifie si la file est vide : pas de process entre noPriorité et MAX et pas de process de MIN à noPriorité
+            if((pasDeProcess == true) && (i == noPriorite)) {
+                fileVide = true;
+                //printf("fileVide ! break\n");
+                break;
+            }
+            // S'il n'y a pas de process de priorité recherché, on passe à la priorité d'apres
             if ((msgrcv(msgid, &process, sizeof(processus) - 4, i, IPC_NOWAIT)) == -1) {
-//                printf("La priorité %d n'est pas dans la file !\n", i);
+                if (i == PRIO_MAX) { // Si on atteint la priorité MAX et qu'il n'y a toujours pas de processus on recommence à MIN
+                    i = PRIO_MIN-1;
+                    pasDeProcess = true;
+                }
             } else {
+                // Dans le cas où un processus est trouvé
                 fileVide = false;
+                pasDeProcess = false;
                 //sleep(1);
-                if(process.tpsExec >= 1) {
-                    process.tpsExec -= 1;
-                    printf("[PROCESSUS LU]      PID : %d,  priorite : %ld, temps d'execution : %d, date de soumissions : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+                printf("\n----------------------------  Quantum : %d      Cherche priorité %d  -----------------------------\n",
+                       quantum, noPriorite);
+                printf("[PROCESSUS SORTI DE LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",
+                       process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+
+                if (process.tpsExec - dureeQuantum > 0) {
+                    process.tpsExec -= dureeQuantum;
+                    process.priorite += 1;
 
                     if (msgsnd(msgid, &process, sizeof(processus) - 4, 0) == -1) {
                         perror("Erreur de lecture requete \n");
                         exit(1);
                     }
-                    break;
+                    printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",
+                           process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+                } else {
+                    process.tpsExec = 0;
+                    printf("[PROCESSUS TERMINE]\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",
+                           process.pid, process.priorite, process.tpsExec, process.dateSoumission);
                 }
+                break;
             }
+            i++;
         }
+        quantum++;
     }
 
 
@@ -111,31 +184,20 @@ void Superviseur(int msgid) {
 
 // Générateur de processus aléatoire
 void ProcessusGenerateur(int msgid, int nbProcess) {
-    printf("\n- LANCEMENT DU GENERATEUR DE PROCESSUS\n");
+    printf("\n=================================   LANCEMENT DU GENERATEUR DE PROCESSUS   =================================\n");
     for (int i = 0; i < nbProcess; ++i) {
-        //sleep(1);
-        if(fork() == 0) {
-            /*int msgid;
-            if ((msgid = msgget(CLE, 0750)) == -1) {
-                perror("Erreur la file n'existe pas\n");
-                exit(1);
-            }*/
-            srand(getpid());
-            processus process;
-            process.pid = getpid();
-            process.priorite = rand()%11 +1;
-            process.tpsExec = rand()%5 +1;
-            process.dateSoumission = rand()%21;
-            printf("[PROCESSUS LANCE]   PID : %d,  priorite : %ld, temps d'execution : %d, date de soumissions : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+        processus process;
+        process.pid = i+1;
+        process.priorite = rand()%10 +1;
+        process.tpsExec = rand()%5 +1;
+        process.dateSoumission = rand()%11;
+        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
 
-
-            // Envoi du processus dans la file de message
-            if (msgsnd(msgid, &process, sizeof(processus) - 4,0) == -1) {
-                perror("Erreur de lecture requete \n");
-                exit(1);
-            }
-            //sleep(10);
-            exit(0);//kill après 10 secondes
+        // Envoi du processus dans la file de message
+        if (msgsnd(msgid, &process, sizeof(processus) - 4,0) == -1) {
+            perror("Erreur de lecture requete \n");
+            exit(1);
         }
     }
+    printf("============================================================================================================\n");
 }
