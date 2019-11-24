@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -23,13 +22,13 @@ void Superviseur(int, int*, int, int);
 
 
 int main() {
-    int msgid;
+    int msgid; //id de la file de messages
     int nbProcess;
     int dureeQuantum;
-    int* tabCPU;
-    int tempTabCPU[200];
-    int tailleTabCPU = 0;
-    char chaine[5];
+    int* tabCPU; // tableau contenant la table d'allocation CPU
+    int tempTabCPU[200]; // tableau temporaire pour remplir la table CPU
+    int tailleTabCPU = 0; // taille de la table CPU
+    char chaine[5]; // variable tampon pour récupérer les valeurs du fichier csv
 
 
     //======= Données entrées par l'utilisateur ======
@@ -128,7 +127,7 @@ void Superviseur(int msgid, int* tabCPU, int tailleTabCPU, int dureeQuantum) {
                 fileVide = false;
                 pasDeProcess = false;
                 //sleep(1);
-                printf("\n----------------------------  Quantum : %d      Cherche priorité %d  -----------------------------\n",
+                printf("\n----------------------------------  Quantum : %d\t\tCherche priorité %d  -----------------------------------\n",
                        quantum, noPriorite);
                 printf("[PROCESSUS SORTI DE LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",
                        process.pid, process.priorite, process.tpsExec, process.dateSoumission);
