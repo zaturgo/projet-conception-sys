@@ -29,6 +29,7 @@ int main() {
     int tempTabCPU[200]; // tableau temporaire pour remplir la table CPU
     int tailleTabCPU = 0; // taille de la table CPU
     char chaine[5]; // variable tampon pour récupérer les valeurs du fichier csv
+    processus processJeuDeTest[5];
 
 
     //======= Données entrées par l'utilisateur ======
@@ -40,21 +41,35 @@ int main() {
     //================================================
 
 
-    //============== Ouverture du fichier csv ===================
-    FILE* fichier = fopen("../TableCPU.csv", "r");
-    if (fichier==NULL) {
+    //============= Ouverture du fichier TableCPU.csv ===============
+    FILE* fichTabCPU = fopen("../TableCPU.csv", "r");
+    if (fichTabCPU==NULL) {
         printf("Ouverture fichier impossible !");
         exit(1);
-    }//==========================================================
+    }//==============================================================
 
-
-    //============= Lecture du fichier csv ======================
-    // on lit une ligne après l'autre jusqu'Ã  la fin du fichier
-    while (fgets(chaine, 5, fichier) != NULL) {
+    //============ Lecture du fichier TableCPU.csv =============
+    while (fgets(chaine, 5, fichTabCPU) != NULL) {
         tempTabCPU[tailleTabCPU] = atoi(chaine);
         tailleTabCPU++;
     }
-    fclose(fichier);
+    fclose(fichTabCPU);
+    //==========================================================
+
+
+    //============== Ouverture du fichier JeuDeTest.csv ================
+    FILE* fichJeuDeTest = fopen("../JeuDeTest.csv", "r");
+    if (fichJeuDeTest==NULL) {
+        printf("Ouverture fichier impossible !");
+        exit(1);
+    }//=================================================================
+
+    //============= Lecture du fichier JeuDeTest.csv ======================
+    int j=0;
+    while (fscanf(fichJeuDeTest, "%d;%ld;%d;%d",&processJeuDeTest[j].pid, &processJeuDeTest[j].priorite, &processJeuDeTest[j].tpsExec, &processJeuDeTest[j].dateSoumission) != EOF) {
+        j++;
+    }
+    fclose(fichJeuDeTest);
     //===========================================================
 
 
@@ -71,6 +86,16 @@ int main() {
         perror("Erreur de creation de la file\n");
         exit(1);
     }//=====================================================================
+
+
+    for(int i=0; i<5; i++) {
+        // Envoi du processus dans la file de message
+        if (msgsnd(msgid, &processJeuDeTest[i], sizeof(processus) - 4,0) == -1) {
+            perror("Erreur de lecture requete \n");
+            exit(1);
+        }
+        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", processJeuDeTest[i].pid, processJeuDeTest[i].priorite, processJeuDeTest[i].tpsExec, processJeuDeTest[i].dateSoumission);
+    }
     
 
     //======= Génerateur de processus et superviseur =======
@@ -134,7 +159,7 @@ void Superviseur(int msgid, int* tabCPU, int tailleTabCPU, int dureeQuantum) {
 
                 if (process.tpsExec - dureeQuantum > 0) {
                     process.tpsExec -= dureeQuantum;
-                    process.priorite += 1;
+                    if(process.priorite < PRIO_MAX) { process.priorite += 1; }
 
                     if (msgsnd(msgid, &process, sizeof(processus) - 4, 0) == -1) {
                         perror("Erreur de lecture requete \n");
@@ -186,17 +211,17 @@ void ProcessusGenerateur(int msgid, int nbProcess) {
     printf("\n=================================   LANCEMENT DU GENERATEUR DE PROCESSUS   =================================\n");
     for (int i = 0; i < nbProcess; ++i) {
         processus process;
-        process.pid = i+1;
+        process.pid = i+6;
         process.priorite = rand()%10 +1;
         process.tpsExec = rand()%5 +1;
         process.dateSoumission = rand()%11;
-        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
 
         // Envoi du processus dans la file de message
         if (msgsnd(msgid, &process, sizeof(processus) - 4,0) == -1) {
             perror("Erreur de lecture requete \n");
             exit(1);
         }
+        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
     }
     printf("============================================================================================================\n");
 }
