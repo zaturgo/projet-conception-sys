@@ -82,10 +82,15 @@ int main() {
 
 
     //================ Création de la file de messages======================
+    // Supprime la file si elle existe encore
+    if ((msgid = msgget(CLE, 0750 | IPC_CREAT)) != -1) {
+        msgctl(msgid, IPC_RMID, NULL);
+    }
     if ((msgid = msgget(CLE, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
         perror("Erreur de creation de la file\n");
         exit(1);
-    }//=====================================================================
+    }
+    //=====================================================================
 
 
     for(int i=0; i<5; i++) {
