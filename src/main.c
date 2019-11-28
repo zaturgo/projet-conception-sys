@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <stdbool.h>
@@ -20,9 +19,6 @@ typedef struct {
 
 void ProcessusGenerateur(int, int);
 void Superviseur(int, int*, int, int);
-
-bool plusDeProcessus = false;
-int quantum = 0;
 
 
 int main() {
@@ -125,13 +121,14 @@ int main() {
 
 
 void Superviseur(int msgid, int* tabCPU, int tailleTabCPU, int dureeQuantum) {
+    int quantum = 0;
     bool fileVide = false;
 
     printf("\n\n=====================================   LANCEMENT DU SUPERVISEUR   =========================================\n");
     printf("Durée quantum : %d\n", dureeQuantum);
 
-    // Tant que la file n'est pas vide et qu'il y a encore des processus
-    while(!(plusDeProcessus && fileVide)) {
+    // Tant que la file n'est pas vide
+    while(!fileVide) {
         processus process;
 
         int noPriorite = tabCPU[quantum % tailleTabCPU]; // priorité cherchée
@@ -218,24 +215,18 @@ void Superviseur(int msgid, int* tabCPU, int tailleTabCPU, int dureeQuantum) {
 void ProcessusGenerateur(int msgid, int nbProcess) {
     printf("\n=================================   LANCEMENT DU GENERATEUR DE PROCESSUS   =================================\n");
     for (int i = 0; i < nbProcess; ++i) {
+        processus process;
+        process.pid = i+6;
+        process.priorite = rand()%10 +1;
+        process.tpsExec = rand()%5 +1;
+        process.dateSoumission = rand()%11;
 
-        if(fork() == 0) {
-            processus process;
-            process.pid = i + 6;
-            process.priorite = rand() % 10 + 1;
-            process.tpsExec = rand() % 5 + 1;
-            process.dateSoumission = rand() % 11;
-
-            // Envoi du processus dans la file de message
-            if (msgsnd(msgid, &process, sizeof(processus) - 4, 0) == -1) {
-                perror("Erreur de lecture requete \n");
-                exit(1);
-            }
-            printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",process.pid, process.priorite, process.tpsExec, process.dateSoumission);
-
-            if(i >= nbProcess -1) {plusDeProcessus = true;}
+        // Envoi du processus dans la file de message
+        if (msgsnd(msgid, &process, sizeof(processus) - 4,0) == -1) {
+            perror("Erreur de lecture requete \n");
+            exit(1);
         }
-
+        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
     }
     printf("============================================================================================================\n");
 }
