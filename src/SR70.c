@@ -1,3 +1,10 @@
+/***
+ * Auteurs :
+ * BLANCHARD Hugo
+ * HIRTH Matthieu
+ *
+ * ***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
