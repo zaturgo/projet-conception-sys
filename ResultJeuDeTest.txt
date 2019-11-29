@@ -1,16 +1,16 @@
-pid	priorité	tps exe	date soumission
-1	3			2	0
-2	6			1	0
-3	1			3	0
-4	8			2	0
-5	10			4	0
+pid	    priorité	tps exe	    date soumission
+1	    3			2	        0
+2	    6			1	        0
+3	    1  			3	        0
+4	    8			2	        0
+5	    10			4	        0
 
 
 nb Quantum attendus : 12 (de 0 à 11)
 
 -----------------   Quantum : 0		Prio recherchée : 1   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 3		Prio : 1	Tps exe : 3		Date : 
-[PROCESSUS MIS DANS LA FILE]  	PID : 3		Prio : 2	Tps exe : 2		Date : 
+[PROCESSUS MIS DANS LA FILE]    PID : 3		Prio : 2	Tps exe : 2		Date :
 
 -----------------   Quantum : 1		Prio recherchée : 2   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 3		Prio : 2	Tps exe : 2		Date : 
@@ -22,11 +22,11 @@ nb Quantum attendus : 12 (de 0 à 11)
 
 -----------------   Quantum : 3		Prio recherchée : 4   ----------------
 [PROCESSUS SORTI DE LA FILE]	PID : 1		Prio : 4	Tps exe : 1		Date : 
-[PROCESSUS TERMINE]		PID : 1		Prio : 4	Tps exe : 0		Date : 
+[PROCESSUS TERMINE]		        PID : 1		Prio : 4	Tps exe : 0		Date :
 
 -----------------   Quantum : 4		Prio recherchée : 5   ----------------
 [PROCESSUS SORTI DE LA FILE]	PID : 2		Prio : 6	Tps exe : 1		Date : 
-[PROCESSUS TERMINE]		PID : 2		Prio : 6	Tps exe : 0		Date : 
+[PROCESSUS TERMINE]		        PID : 2		Prio : 6	Tps exe : 0		Date :
 
 -----------------   Quantum : 5		Prio recherchée : 6   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 4		Prio : 8	Tps exe : 2		Date : 
@@ -34,7 +34,7 @@ nb Quantum attendus : 12 (de 0 à 11)
 
 -----------------   Quantum : 6		Prio recherchée : 7   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 4		Prio : 9	Tps exe : 1		Date : 
-[PROCESSUS TERMINE]		PID : 4		Prio : 9	Tps exe : 0		Date : 
+[PROCESSUS TERMINE]		        PID : 4		Prio : 9	Tps exe : 0		Date :
 
 -----------------   Quantum : 7		Prio recherchée : 8   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 5		Prio : 10	Tps exe : 4		Date : 
@@ -50,8 +50,8 @@ nb Quantum attendus : 12 (de 0 à 11)
 
 -----------------   Quantum : 10		Prio recherchée : 1   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 3		Prio : 3	Tps exe : 1		Date : 
-[PROCESSUS TERMINE]		PID : 3		Prio : 3	Tps exe : 0		Date : 
+[PROCESSUS TERMINE]		        PID : 3		Prio : 3	Tps exe : 0		Date :
 
 -----------------   Quantum : 11		Prio recherchée : 2   ----------------
 [PROCESSUS SORTI DE LA FILE]  	PID : 5		Prio : 10	Tps exe : 1		Date : 
-[PROCESSUS TERMINE]		PID : 5		Prio : 10	Tps exe : 0		Date : 
+[PROCESSUS TERMINE]		        PID : 5		Prio : 10	Tps exe : 0		Date :
