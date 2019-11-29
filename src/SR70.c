@@ -24,7 +24,7 @@ void EnvoiProcessus(processus);
 void VerifProcessusAttente();
 void TraitementProcessus(processus, int);
 
-int quantum = 0;
+int quantum = -1;
 bool fileAttenteVide = false;
 
 int main() {
@@ -145,7 +145,7 @@ void Superviseur(int* tabCPU, int tailleTabCPU, int dureeQuantum) {
     bool filePrincipaleVide = false;
 
     printf("\n\n=====================================   LANCEMENT DU SUPERVISEUR   =========================================\n");
-
+    quantum = 0;
     // Tant que la file n'est pas vide et qu'il reste des processus
     while(!filePrincipaleVide || !fileAttenteVide) {
         processus process;
@@ -201,7 +201,7 @@ void EnvoiProcessus(processus process){
     int msgid_Principale = msgget(CLE_FILE_PRINCIPALE, 0750 | IPC_EXCL);
     int msgid_Attente = msgget(CLE_FILE_ATTENTE, 0750 | IPC_EXCL);
 
-    if (process.dateSoumission <= quantum) {
+    if ((process.dateSoumission <= quantum) && (quantum >= 0)) {
         if (msgsnd(msgid_Principale, &process, sizeof(processus) - sizeof(long), 0) == -1) {
             perror("Erreur de lecture requete msgsnd file principale\n");
             exit(1);
