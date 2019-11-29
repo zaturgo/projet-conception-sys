@@ -3,4 +3,4 @@ project(ProjetSysteme C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(ProjetSysteme src/main.c)
+add_executable(ProjetSysteme src/SR70.c)
