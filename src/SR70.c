@@ -43,11 +43,14 @@ int main() {
     printf("============================================================================================================\n\n\n");
 
     //======= Données entrées par l'utilisateur ======
-    printf("Entrez le nombre de processus : ");
+    printf("Entrez le nombre de processus à générer aléatoirement : ");
     scanf("%d", &nbProcess);
 
-    printf("Entrez la durée d'un quantum : ");
-    scanf("%d", &dureeQuantum);
+    dureeQuantum = 0;
+    while(dureeQuantum < 1) {
+        printf("Entrez la durée d'un quantum de temps (doit être supérieur ou égal à 1) : ");
+        scanf("%d", &dureeQuantum);
+    }
     //================================================
 
 
