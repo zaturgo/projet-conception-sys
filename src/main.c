@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <stdbool.h>
@@ -8,7 +7,6 @@
 
 #define CLE_FILE_PRINCIPALE  0x123
 #define CLE_FILE_ATTENTE  0x456
-#define PRIO_MIN  1
 #define PRIO_MAX  10
 #define NB_PROCESS_TEST  5
 
@@ -57,13 +55,13 @@ int main() {
         exit(1);
     }//==============================================================
 
-    //============ Lecture du fichier TableCPU.csv =============
+    //======== Lecture du fichier TableCPU.csv =========
     while (fgets(chaine, 5, fichTabCPU) != NULL) {
         tempTabCPU[tailleTabCPU] = atoi(chaine);
         tailleTabCPU++;
     }
     fclose(fichTabCPU);
-    //==========================================================
+    //==================================================
 
 
     //============== Ouverture du fichier JeuDeTest.csv ================
@@ -76,11 +74,10 @@ int main() {
     //============= Lecture du fichier JeuDeTest.csv ======================
     int j=0;
     while (fscanf(fichJeuDeTest, "%d;%ld;%d;%d",&processJeuDeTest[j].pid, &processJeuDeTest[j].priorite, &processJeuDeTest[j].tpsExec, &processJeuDeTest[j].dateSoumission) != EOF) {
-        //printf("");
         j++;
     }
     fclose(fichJeuDeTest);
-    //===========================================================
+    //=====================================================================
 
 
     //====== Remplissage table d'allocation CPU ======
@@ -91,8 +88,8 @@ int main() {
     }//===============================================
 
 
-    //================ Création des files de messages======================
-    // Supprime la file si elle existe encore
+    //=====================   Création des files de messages   ===========================================
+    // Supprime les files si elles existent encore
     if ((msgid_Principale = msgget(CLE_FILE_PRINCIPALE, 0750 | IPC_CREAT)) != -1) {
         msgctl(msgid_Principale, IPC_RMID, NULL);
     }
@@ -100,7 +97,7 @@ int main() {
         msgctl(msgid_Attente, IPC_RMID, NULL);
     }
 
-    // Crée la file
+    // Crée les files
     if ((msgid_Principale = msgget(CLE_FILE_PRINCIPALE, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
         perror("Erreur de creation de la file principale\n");
         exit(1);
@@ -108,8 +105,8 @@ int main() {
     if ((msgid_Attente = msgget(CLE_FILE_ATTENTE, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
         perror("Erreur de creation de la file d'attente\n");
         exit(1);
-    }
-    //=====================================================================
+    }//================================================================================================
+
 
     printf("\n======================================   LECTURE DU JEU DE TEST CSV   ======================================\n");
     for(int i=0; i<NB_PROCESS_TEST; i++) {
@@ -151,7 +148,7 @@ void Superviseur(int* tabCPU, int tailleTabCPU, int dureeQuantum) {
 
         VerifProcessusAttente();
 
-        // S'il n'y a pas de process de priorité recherché, on passe à la priorité d'apres
+        // S'il n'y a pas de process de priorité recherché, on passe à la priorité +1
         for(int i=0; i<PRIO_MAX; i++) {
             int noPriorite;
 
@@ -159,11 +156,8 @@ void Superviseur(int* tabCPU, int tailleTabCPU, int dureeQuantum) {
                 noPriorite = (i+noPrioriteBase)%(PRIO_MAX+1) +1;
             } else {noPriorite = (i+noPrioriteBase)%(PRIO_MAX+1);}
 
-//            printf("no prio : %d\n", noPriorite);
-
             // Un processus est trouvé
             if ((msgrcv(msgid_Principale, &process, sizeof(processus) - sizeof(long), noPriorite, IPC_NOWAIT)) != -1) {
-//                printf("[PROCESSUS SORTI DE LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
                 printf("[PROCESSUS SORTI ET EXECUTE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
                 TraitementProcessus(process, dureeQuantum);
                 filePrincipaleVide = false;
@@ -191,13 +185,6 @@ void ProcessusGenerateur(int nbProcess) {
 
         printf("[PROCESSUS GENERE]\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
         EnvoiProcessus(process);
-//        sleep(1);
-        // Envoi du processus dans la file de message
-//        if (msgsnd(msgid, &process, sizeof(processus) - 4,0) == -1) {
-//            perror("Erreur de lecture requete \n");
-//            exit(1);
-//        }
-//        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
     }
     printf("============================================================================================================\n");
 }
@@ -206,9 +193,6 @@ void ProcessusGenerateur(int nbProcess) {
 void EnvoiProcessus(processus process){
     int msgid_Principale = msgget(CLE_FILE_PRINCIPALE, 0750 | IPC_EXCL);
     int msgid_Attente = msgget(CLE_FILE_ATTENTE, 0750 | IPC_EXCL);
-
-    //
-//    printf("\ndatesoumission : %d = quantum : %d\n",process.dateSoumission, quantum);
 
     if (process.dateSoumission <= quantum) {
         if (msgsnd(msgid_Principale, &process, sizeof(processus) - sizeof(long), 0) == -1) {
@@ -221,30 +205,19 @@ void EnvoiProcessus(processus process){
             perror("Erreur de lecture requete msgsnd file attente\n");
             exit(1);
         }
-//        printf("[PROCESSUS EN ATTENTE]\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",process.pid, process.priorite, process.tpsExec, process.dateSoumission);
     }
 }
 
 
 void VerifProcessusAttente() {
-//    int msgid_Principale = msgget(CLE_FILE_PRINCIPALE, 0750 | IPC_EXCL);
     int msgid_Attente = msgget(CLE_FILE_ATTENTE, 0750 | IPC_EXCL);
     processus process;
     int pidVal =- 1;
     bool premierAEteLu = false;
 
-    /*if((msgrcv(msgid_Attente, &process, sizeof(processus) - sizeof(long), 0, IPC_NOWAIT)) != -1) {
-        pidVal = process.pid;
-        if (msgsnd(msgid_Attente, &process, sizeof(processus) - sizeof(long), 0) == -1) {
-            perror("Erreur de lecture requete msgsnd file principale\n");
-            exit(1);
-        }
-    }*/
-
     // Tant qu'il y a des processus dans la file attente
     int i =0;
     while((msgrcv(msgid_Attente, &process, sizeof(processus) - sizeof(long), 0, IPC_NOWAIT)) != -1) {
-//        printf("[WHILE]\t\t\t\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n",process.pid, process.priorite, process.tpsExec, process.dateSoumission);
 
         EnvoiProcessus(process);
 
@@ -253,11 +226,8 @@ void VerifProcessusAttente() {
             premierAEteLu = true;
         } else if(pidVal == process.pid) {
         // Sort du while si on a fait un tour de la file attente
-//            printf("break while\n");
             break;
         }
-
-//        sleep(1);
         i++;
     }
 
@@ -269,18 +239,12 @@ void VerifProcessusAttente() {
 
 
 void TraitementProcessus(processus process, int dureeQuantum) {
-//    printf("[PROCESSUS SORTI DE LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
-
     if (process.tpsExec - dureeQuantum > 0) {
         process.tpsExec -= dureeQuantum;
         if (process.priorite < PRIO_MAX) { process.priorite += 1; }
 
         EnvoiProcessus(process);
-//        if (msgsnd(msgid_Principale, &process, sizeof(processus) - 4, 0) == -1) {
-//            perror("Erreur de lecture requete \n");
-//            exit(1);
-//        }
-//        printf("[PROCESSUS MIS DANS LA FILE]\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+
     } else {
         process.tpsExec = 0;
         printf("[PROCESSUS TERMINE]\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
