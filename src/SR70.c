@@ -38,6 +38,9 @@ int main() {
     char chaine[5]; // variable tampon pour récupérer les valeurs du fichier csv
     processus processJeuDeTest[NB_PROCESS_TEST];
 
+    printf("\n\n============================================================================================================\n");
+    printf("=======================================  ***   DEBUT DE SR70   ***  ========================================\n");
+    printf("============================================================================================================\n\n\n");
 
     //======= Données entrées par l'utilisateur ======
     printf("Entrez le nombre de processus : ");
@@ -49,7 +52,7 @@ int main() {
 
 
     //============= Ouverture du fichier TableCPU.csv ===============
-    FILE* fichTabCPU = fopen("../TableCPU.csv", "r");
+    FILE* fichTabCPU = fopen("TableCPU.csv", "r");
     if (fichTabCPU==NULL) {
         printf("Ouverture fichier impossible !");
         exit(1);
@@ -65,7 +68,7 @@ int main() {
 
 
     //============== Ouverture du fichier JeuDeTest.csv ================
-    FILE* fichJeuDeTest = fopen("../JeuDeTest.csv", "r");
+    FILE* fichJeuDeTest = fopen("JeuDeTest.csv", "r");
     if (fichJeuDeTest==NULL) {
         printf("Ouverture fichier impossible !");
         exit(1);
@@ -110,7 +113,7 @@ int main() {
 
     printf("\n======================================   LECTURE DU JEU DE TEST CSV   ======================================\n");
     for(int i=0; i<NB_PROCESS_TEST; i++) {
-        printf("[PROCESSUS GENERE]\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", processJeuDeTest[i].pid, processJeuDeTest[i].priorite, processJeuDeTest[i].tpsExec, processJeuDeTest[i].dateSoumission);
+        printf("[PROCESSUS GENERE]\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", processJeuDeTest[i].pid, processJeuDeTest[i].priorite, processJeuDeTest[i].tpsExec, processJeuDeTest[i].dateSoumission);
         EnvoiProcessus(processJeuDeTest[i]);
     }
     printf("============================================================================================================\n");
@@ -121,6 +124,10 @@ int main() {
     Superviseur(tabCPU, tailleTabCPU, dureeQuantum);
     //======================================================
 
+
+    printf("\n\n============================================================================================================\n");
+    printf("========================================  ***   FIN DE SR70   ***  =========================================\n");
+    printf("============================================================================================================\n\n\n");
 
     //=== Suppr file de msg et libération mémoire ===
     msgctl(msgid_Principale, IPC_RMID, NULL);
@@ -166,8 +173,8 @@ void Superviseur(int* tabCPU, int tailleTabCPU, int dureeQuantum) {
             if (i == PRIO_MAX-1) {filePrincipaleVide = true;}
         }
         quantum++;
-//        sleep(1);
     }
+    printf("\nPlus de processus dans les files de messages.\n");
     printf("============================================================================================================\n");
 }
 
@@ -178,12 +185,12 @@ void ProcessusGenerateur(int nbProcess) {
     printf("\n\n=================================   LANCEMENT DU GENERATEUR DE PROCESSUS   =================================\n");
     for (int i = 0; i < nbProcess; ++i) {
         processus process;
-        process.pid = i+6;
+        process.pid = i+NB_PROCESS_TEST+1;
         process.priorite = rand()%10 +1;
-        process.tpsExec = rand()%5 +1;
-        process.dateSoumission = rand()%11;
+        process.tpsExec = rand()%7 +1;
+        process.dateSoumission = rand()%14;
 
-        printf("[PROCESSUS GENERE]\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+        printf("[PROCESSUS GENERE]\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
         EnvoiProcessus(process);
     }
     printf("============================================================================================================\n");
@@ -247,6 +254,6 @@ void TraitementProcessus(processus process, int dureeQuantum) {
 
     } else {
         process.tpsExec = 0;
-        printf("[PROCESSUS TERMINE]\t\t\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
+        printf("[PROCESSUS TERMINE]\t\tPID : %d \t priorite : %ld \t temps d'execution : %d \t date de soumission : %d\n", process.pid, process.priorite, process.tpsExec, process.dateSoumission);
     }
 }
